@@ -19,6 +19,7 @@ import {
   Copy,
   RotateCcw
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface Message {
   id: string;
@@ -33,6 +34,8 @@ const suggestedQuestions = [
   { icon: BookText, text: "Help me analyze Shakespeare's themes" },
   { icon: Code, text: "How do I create a for loop in Python?" },
 ];
+
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([
@@ -69,21 +72,142 @@ export function ChatInterface() {
     setInput("");
     setIsLoading(true);
 
-    // Simulate AI response (this will be replaced with actual AI integration)
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: generateMockResponse(input),
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, aiResponse]);
+    // Build message history for API
+    const apiMessages = [...messages.slice(1), userMessage].map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    let assistantContent = "";
+
+    try {
+      const response = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ messages: apiMessages }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          toast.error("Rate limit exceeded. Please try again later.");
+          throw new Error("Rate limit exceeded");
+        }
+        if (response.status === 402) {
+          toast.error("Payment required. Please add credits.");
+          throw new Error("Payment required");
+        }
+        throw new Error("Failed to get response");
+      }
+
+      if (!response.body) throw new Error("No response body");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = "";
+
+      // Create the assistant message placeholder
+      const assistantMessageId = (Date.now() + 1).toString();
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: assistantMessageId,
+          role: "assistant",
+          content: "",
+          timestamp: new Date(),
+        },
+      ]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        textBuffer += decoder.decode(value, { stream: true });
+
+        // Process line-by-line as data arrives
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              assistantContent += content;
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantMessageId
+                    ? { ...m, content: assistantContent }
+                    : m
+                )
+              );
+            }
+          } catch {
+            // Incomplete JSON, put it back
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
+      }
+
+      // Final flush
+      if (textBuffer.trim()) {
+        for (let raw of textBuffer.split("\n")) {
+          if (!raw) continue;
+          if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+          if (raw.startsWith(":") || raw.trim() === "") continue;
+          if (!raw.startsWith("data: ")) continue;
+          const jsonStr = raw.slice(6).trim();
+          if (jsonStr === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              assistantContent += content;
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantMessageId
+                    ? { ...m, content: assistantContent }
+                    : m
+                )
+              );
+            }
+          } catch { /* ignore */ }
+        }
+      }
+    } catch (error) {
+      console.error("Chat error:", error);
+      toast.error("Failed to get AI response. Please try again.");
+      // Remove the empty assistant message if there was an error
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "assistant" && !last.content) {
+          return prev.slice(0, -1);
+        }
+        return prev;
+      });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handleSuggestedQuestion = (question: string) => {
     setInput(question);
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard");
   };
 
   return (
@@ -114,7 +238,7 @@ export function ChatInterface() {
                 }`}>
                   <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                 </Card>
-                {message.role === "assistant" && (
+                {message.role === "assistant" && message.content && (
                   <div className="flex gap-2 mt-2">
                     <button className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
                       <ThumbsUp className="w-4 h-4" />
@@ -122,7 +246,10 @@ export function ChatInterface() {
                     <button className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
                       <ThumbsDown className="w-4 h-4" />
                     </button>
-                    <button className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+                    <button 
+                      onClick={() => copyToClipboard(message.content)}
+                      className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+                    >
                       <Copy className="w-4 h-4" />
                     </button>
                     <button className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
@@ -135,7 +262,7 @@ export function ChatInterface() {
           ))}
         </AnimatePresence>
 
-        {isLoading && (
+        {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -213,69 +340,4 @@ export function ChatInterface() {
       </div>
     </div>
   );
-}
-
-function generateMockResponse(question: string): string {
-  const q = question.toLowerCase();
-  
-  if (q.includes("quadratic") || q.includes("equation")) {
-    return `Great question! Let me explain **quadratic equations** step by step:
-
-📐 **What is a Quadratic Equation?**
-A quadratic equation has the form: ax² + bx + c = 0
-
-🔢 **The Quadratic Formula**
-x = (-b ± √(b² - 4ac)) / 2a
-
-📝 **Example**
-Solve: x² + 5x + 6 = 0
-
-Step 1: Identify a=1, b=5, c=6
-Step 2: Calculate discriminant: 5² - 4(1)(6) = 25 - 24 = 1
-Step 3: Apply formula: x = (-5 ± √1) / 2
-Step 4: x = -2 or x = -3
-
-Would you like me to work through another example?`;
-  }
-  
-  if (q.includes("photosynthesis")) {
-    return `Excellent question! Here's how **photosynthesis** works:
-
-🌱 **What is Photosynthesis?**
-It's how plants convert sunlight into food (glucose).
-
-⚗️ **The Chemical Equation**
-6CO₂ + 6H₂O + Light → C₆H₁₂O₆ + 6O₂
-
-📍 **Where it Happens**
-In the chloroplasts, specifically the thylakoids and stroma.
-
-🔬 **Two Main Stages**
-1. **Light Reactions**: Capture sunlight, split water, produce ATP
-2. **Calvin Cycle**: Use ATP to convert CO₂ into glucose
-
-🌍 **Why it Matters**
-- Produces oxygen we breathe
-- Creates food for plants (and us!)
-- Removes CO₂ from atmosphere
-
-Want me to explain either stage in more detail?`;
-  }
-
-  return `That's a great question! Let me help you understand this topic.
-
-📚 **Key Points:**
-- I'll break this down into simple, understandable parts
-- Each concept builds on the previous one
-- Practice is key to mastering this topic
-
-💡 **Here's my explanation:**
-This is where I would provide a detailed, step-by-step explanation of your specific question. I'd include examples, diagrams descriptions, and practice problems.
-
-📝 **Next Steps:**
-1. Review the main concepts
-2. Try some practice problems
-3. Ask me if you get stuck!
-
-Would you like me to go deeper into any specific part?`;
 }
