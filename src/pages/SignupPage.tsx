@@ -144,14 +144,6 @@ export default function SignupPage() {
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                Already have an account?{" "}
-                <Link to="/login" className="text-primary font-medium hover:underline">
-                  Sign in
-                </Link>
-              </p>
-            </div>
           </CardContent>
         </Card>
 
