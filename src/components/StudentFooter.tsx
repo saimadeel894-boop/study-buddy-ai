@@ -1,41 +1,92 @@
 import { Link } from "react-router-dom";
 import { GraduationCap, Heart, Coffee } from "lucide-react";
 
+const footerLinks = {
+  learn: [
+    { label: "AI Assistant", href: "/chat" },
+    { label: "Study Hub", href: "/library" },
+    { label: "Homework Solver", href: "/solver" },
+  ],
+  resources: [
+    { label: "Math Help", href: "/math-help" },
+    { label: "Homework Helper", href: "/homework-helper" },
+    { label: "Explain Simply", href: "/explain-simply" },
+  ],
+};
+
 export function StudentFooter() {
   return (
-    <footer className="border-t border-border bg-card/50 py-8">
+    <footer className="border-t border-border bg-card/50 py-12 mt-auto">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-              <GraduationCap className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="font-display font-bold text-foreground">
-              Study<span className="text-gradient">AI</span>
-            </span>
+        <div className="grid md:grid-cols-4 gap-8 mb-8">
+          {/* Brand */}
+          <div>
+            <Link to="/" className="flex items-center gap-2 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
+                <GraduationCap className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <span className="font-display font-bold text-xl text-foreground">
+                Study<span className="text-gradient">AI</span>
+              </span>
+            </Link>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Free AI-powered study assistant. No signup, no fees, just learning.
+            </p>
           </div>
 
-          <nav className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
-            <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
-            <Link to="/chat" className="hover:text-foreground transition-colors">AI Assistant</Link>
-            <Link to="/library" className="hover:text-foreground transition-colors">Study Hub</Link>
-            <Link to="/solver" className="hover:text-foreground transition-colors">Homework Solver</Link>
-          </nav>
+          {/* Learn Links */}
+          <div>
+            <h4 className="font-display font-semibold text-foreground mb-4">Learn</h4>
+            <ul className="space-y-2">
+              {footerLinks.learn.map((link) => (
+                <li key={link.href}>
+                  <Link 
+                    to={link.href}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-          <div className="flex items-center gap-4">
+          {/* Resources Links */}
+          <div>
+            <h4 className="font-display font-semibold text-foreground mb-4">Resources</h4>
+            <ul className="space-y-2">
+              {footerLinks.resources.map((link) => (
+                <li key={link.href}>
+                  <Link 
+                    to={link.href}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Support */}
+          <div>
+            <h4 className="font-display font-semibold text-foreground mb-4">Support Us</h4>
+            <p className="text-sm text-muted-foreground mb-4">
+              StudyAI is free for everyone. Your support helps keep it running!
+            </p>
             <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors text-sm font-medium">
               <Coffee className="w-4 h-4" />
-              Support Us
+              Buy us a coffee
             </button>
           </div>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-border text-center">
-          <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-            Made with <Heart className="w-4 h-4 text-destructive fill-destructive" /> for students everywhere
+        <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">
+            © {new Date().getFullYear()} StudyAI. Free for all students.
           </p>
-          <p className="text-xs text-muted-foreground mt-2">
-            Free to use • No signup required • Learn anything, anytime
+          <p className="text-sm text-muted-foreground flex items-center gap-1">
+            Made with <Heart className="w-4 h-4 text-destructive fill-destructive" /> for students everywhere
           </p>
         </div>
       </div>

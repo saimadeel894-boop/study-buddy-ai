@@ -23,27 +23,32 @@ import {
   RotateCcw,
   BookMarked,
   History,
-  Trash2
+  Trash2,
+  ChevronDown
 } from "lucide-react";
 import { toast } from "sonner";
 import { StudentHeader } from "@/components/StudentHeader";
 import { StudentFooter } from "@/components/StudentFooter";
 import { useStudySession } from "@/hooks/useLocalStorage";
+import { QuickStudyTools } from "@/components/QuickStudyTools";
+import { SmartSuggestions } from "@/components/SmartSuggestions";
+import { AnswerRenderer } from "@/components/AnswerRenderer";
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  showSuggestions?: boolean;
 }
 
 const subjects = [
-  { id: "math", name: "Math", icon: Calculator },
-  { id: "science", name: "Science", icon: FlaskConical },
-  { id: "english", name: "English", icon: BookOpen },
-  { id: "history", name: "History", icon: Globe },
-  { id: "coding", name: "Coding", icon: Code },
-  { id: "general", name: "General", icon: Brain },
+  { id: "math", name: "Math Mode", icon: Calculator, description: "Steps & formulas" },
+  { id: "science", name: "Science Mode", icon: FlaskConical, description: "Real-world examples" },
+  { id: "english", name: "Language Mode", icon: BookOpen, description: "Grammar & usage" },
+  { id: "history", name: "History Mode", icon: Globe, description: "Context & causes" },
+  { id: "coding", name: "Coding Mode", icon: Code, description: "Code snippets" },
+  { id: "general", name: "General", icon: Brain, description: "All subjects" },
 ];
 
 const suggestedQuestions: Record<string, { icon: typeof Calculator; text: string }[]> = {
@@ -96,19 +101,20 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 export default function StudentChatPage() {
   const [searchParams] = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
-  const selectedSubject = searchParams.get("subject") || "default";
+  const selectedSubject = searchParams.get("subject") || "general";
 
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       role: "assistant",
-      content: "Hi! I'm your AI study assistant. 📚 Ask me anything and I'll explain it step by step. I'm here to help you truly understand, not just give answers. What would you like to learn?",
+      content: "Hi! I'm your AI study assistant. 📚 Select a **subject mode** above for tailored explanations, or just ask anything!\n\nI'll give you:\n- Simple explanations\n- Step-by-step breakdowns\n- Clear examples\n- Key points to remember\n- What to learn next\n\nWhat would you like to learn?",
       timestamp: new Date(),
     },
   ]);
   const [input, setInput] = useState(initialQuery);
   const [isLoading, setIsLoading] = useState(false);
   const [activeSubject, setActiveSubject] = useState(selectedSubject);
+  const [showModeSelector, setShowModeSelector] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasInitialQuery = useRef(false);
   const { session, addRecentTopic, clearRecentTopics } = useStudySession();
@@ -121,7 +127,6 @@ export default function StudentChatPage() {
     scrollToBottom();
   }, [messages]);
 
-  // Handle initial query from URL
   useEffect(() => {
     if (initialQuery && !hasInitialQuery.current) {
       hasInitialQuery.current = true;
@@ -134,8 +139,7 @@ export default function StudentChatPage() {
     const textToSend = messageText || input.trim();
     if (!textToSend || isLoading) return;
 
-    // Add to recent topics
-    addRecentTopic(textToSend, activeSubject === "default" ? "General" : activeSubject);
+    addRecentTopic(textToSend, activeSubject === "general" ? "General" : activeSubject);
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -162,7 +166,10 @@ export default function StudentChatPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: apiMessages }),
+        body: JSON.stringify({ 
+          messages: apiMessages,
+          subjectMode: activeSubject,
+        }),
       });
 
       if (!response.ok) {
@@ -191,6 +198,7 @@ export default function StudentChatPage() {
           role: "assistant",
           content: "",
           timestamp: new Date(),
+          showSuggestions: false,
         },
       ]);
 
@@ -231,6 +239,15 @@ export default function StudentChatPage() {
           }
         }
       }
+
+      // Show suggestions after response completes
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantMessageId
+            ? { ...m, showSuggestions: true }
+            : m
+        )
+      );
 
       if (textBuffer.trim()) {
         for (let raw of textBuffer.split("\n")) {
@@ -273,8 +290,15 @@ export default function StudentChatPage() {
 
   const handleSend = () => handleSendMessage();
 
-  const handleSuggestedQuestion = (question: string) => {
-    setInput(question);
+  const handleToolResult = (result: string, toolName: string) => {
+    const assistantMessage: Message = {
+      id: Date.now().toString(),
+      role: "assistant",
+      content: `**${toolName} Result:**\n\n${result}`,
+      timestamp: new Date(),
+      showSuggestions: true,
+    };
+    setMessages((prev) => [...prev, assistantMessage]);
   };
 
   const copyToClipboard = (text: string) => {
@@ -294,6 +318,7 @@ export default function StudentChatPage() {
   };
 
   const currentSuggestions = suggestedQuestions[activeSubject] || suggestedQuestions.default;
+  const activeSubjectData = subjects.find(s => s.id === activeSubject) || subjects[5];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -303,23 +328,31 @@ export default function StudentChatPage() {
         {/* Sidebar - Hidden on mobile */}
         <aside className="hidden lg:flex w-72 border-r border-border bg-card/50 flex-col">
           <div className="p-4 border-b border-border">
-            <h3 className="font-display font-semibold text-foreground mb-3">Choose Subject</h3>
-            <div className="grid grid-cols-2 gap-2">
+            <h3 className="font-display font-semibold text-foreground mb-3">Subject Mode</h3>
+            <div className="space-y-1">
               {subjects.map((subject) => (
                 <button
                   key={subject.id}
                   onClick={() => setActiveSubject(subject.id)}
-                  className={`flex items-center gap-2 p-2.5 rounded-lg text-sm transition-colors ${
+                  className={`w-full flex items-center gap-3 p-2.5 rounded-lg text-sm transition-colors text-left ${
                     activeSubject === subject.id
                       ? "bg-primary/10 text-primary border border-primary/20"
                       : "hover:bg-secondary text-muted-foreground"
                   }`}
                 >
                   <subject.icon className="w-4 h-4" />
-                  {subject.name}
+                  <div>
+                    <p className="font-medium">{subject.name}</p>
+                    <p className="text-xs opacity-70">{subject.description}</p>
+                  </div>
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Quick Study Tools */}
+          <div className="p-4 border-b border-border">
+            <QuickStudyTools onResult={handleToolResult} />
           </div>
 
           {/* Recent Topics */}
@@ -378,27 +411,74 @@ export default function StudentChatPage() {
 
         {/* Main Chat Area */}
         <main className="flex-1 flex flex-col">
-          {/* Chat Header */}
-          <div className="border-b border-border px-4 py-3 bg-card/50 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
-                <Sparkles className="w-5 h-5 text-primary-foreground" />
+          {/* Sticky Chat Header with Mode Selector */}
+          <div className="sticky top-16 z-40 border-b border-border px-4 py-3 bg-card/95 backdrop-blur-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
+                  <Sparkles className="w-5 h-5 text-primary-foreground" />
+                </div>
+                <div>
+                  <h1 className="font-display font-semibold text-foreground">AI Study Assistant</h1>
+                  <p className="text-xs text-muted-foreground">Structured answers • Step-by-step explanations</p>
+                </div>
               </div>
-              <div>
-                <h1 className="font-display font-semibold text-foreground">AI Study Assistant</h1>
-                <p className="text-xs text-muted-foreground">Ask any question • Get step-by-step explanations</p>
+              
+              {/* Mobile Mode Selector */}
+              <div className="lg:hidden relative">
+                <button
+                  onClick={() => setShowModeSelector(!showModeSelector)}
+                  className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg text-sm"
+                >
+                  <activeSubjectData.icon className="w-4 h-4 text-primary" />
+                  <span className="text-foreground">{activeSubjectData.name}</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showModeSelector ? "rotate-180" : ""}`} />
+                </button>
+                
+                <AnimatePresence>
+                  {showModeSelector && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute right-0 top-full mt-2 w-56 bg-card border border-border rounded-xl shadow-lg overflow-hidden z-50"
+                    >
+                      {subjects.map((subject) => (
+                        <button
+                          key={subject.id}
+                          onClick={() => {
+                            setActiveSubject(subject.id);
+                            setShowModeSelector(false);
+                          }}
+                          className={`w-full flex items-center gap-3 p-3 text-sm transition-colors text-left ${
+                            activeSubject === subject.id
+                              ? "bg-primary/10 text-primary"
+                              : "hover:bg-secondary text-muted-foreground"
+                          }`}
+                        >
+                          <subject.icon className="w-4 h-4" />
+                          <div>
+                            <p className="font-medium">{subject.name}</p>
+                            <p className="text-xs opacity-70">{subject.description}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
+
+              <Badge variant="secondary" className="hidden sm:flex">
+                <span className="w-2 h-2 bg-success rounded-full mr-2 animate-pulse" />
+                Free
+              </Badge>
             </div>
-            <Badge variant="secondary" className="hidden sm:flex">
-              <span className="w-2 h-2 bg-success rounded-full mr-2 animate-pulse" />
-              Free
-            </Badge>
           </div>
 
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <AnimatePresence>
-              {messages.map((message) => (
+              {messages.map((message, idx) => (
                 <motion.div
                   key={message.id}
                   initial={{ opacity: 0, y: 10 }}
@@ -413,32 +493,47 @@ export default function StudentChatPage() {
                   }`}>
                     {message.role === "user" ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
                   </div>
-                  <div className={`max-w-[80%] ${message.role === "user" ? "text-right" : ""}`}>
+                  <div className={`max-w-[85%] lg:max-w-[75%] ${message.role === "user" ? "text-right" : ""}`}>
                     <Card className={`p-4 ${
                       message.role === "user" 
                         ? "bg-primary text-primary-foreground border-primary" 
                         : "bg-card border-border/50"
                     }`}>
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      {message.role === "assistant" ? (
+                        <AnswerRenderer content={message.content} />
+                      ) : (
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      )}
                     </Card>
                     {message.role === "assistant" && message.content && (
-                      <div className="flex gap-2 mt-2">
-                        <button className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
-                          <ThumbsUp className="w-4 h-4" />
-                        </button>
-                        <button className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
-                          <ThumbsDown className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => copyToClipboard(message.content)}
-                          className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
-                        <button className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
-                          <BookMarked className="w-4 h-4" />
-                        </button>
-                      </div>
+                      <>
+                        <div className="flex gap-2 mt-2">
+                          <button className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+                            <ThumbsUp className="w-4 h-4" />
+                          </button>
+                          <button className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+                            <ThumbsDown className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => copyToClipboard(message.content)}
+                            className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                          <button className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+                            <BookMarked className="w-4 h-4" />
+                          </button>
+                        </div>
+                        
+                        {/* Smart Suggestions after AI response */}
+                        {message.showSuggestions && idx === messages.length - 1 && !isLoading && (
+                          <SmartSuggestions 
+                            topic={messages[messages.length - 2]?.content || ""} 
+                            subject={activeSubject}
+                            onSelect={handleSendMessage}
+                          />
+                        )}
+                      </>
                     )}
                   </div>
                 </motion.div>
@@ -478,7 +573,7 @@ export default function StudentChatPage() {
                 {currentSuggestions.map((q, i) => (
                   <button
                     key={i}
-                    onClick={() => handleSuggestedQuestion(q.text)}
+                    onClick={() => setInput(q.text)}
                     className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 hover:bg-secondary text-left transition-colors group"
                   >
                     <q.icon className="w-5 h-5 text-primary shrink-0" />
@@ -491,8 +586,8 @@ export default function StudentChatPage() {
             </div>
           )}
 
-          {/* Input Area */}
-          <div className="border-t border-border p-4 bg-card/50">
+          {/* Sticky Input Area */}
+          <div className="sticky bottom-0 border-t border-border p-4 bg-card/95 backdrop-blur-sm">
             <div className="flex gap-3">
               <div className="relative flex-1">
                 <Input
