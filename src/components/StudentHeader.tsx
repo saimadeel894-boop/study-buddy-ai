@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
-import { GraduationCap, Menu, X, BookOpen, MessageSquare, Search, Lightbulb, Calculator, Brain, Heart } from "lucide-react";
+import { GraduationCap, Menu, X, BookOpen, MessageSquare, Search, Lightbulb, Calculator, Brain } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ThemeToggle } from "./ThemeToggle";
 
 const navLinks = [
   { href: "/", label: "Home", icon: Search },
@@ -51,15 +52,19 @@ export function StudentHeader() {
               </Link>
             );
           })}
+          <ThemeToggle />
         </nav>
 
         {/* Mobile Menu Button */}
-        <button
-          className="md:hidden p-2 hover:bg-secondary rounded-lg transition-colors"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        <div className="md:hidden flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            className="p-2 hover:bg-secondary rounded-lg transition-colors"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}

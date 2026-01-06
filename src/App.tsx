@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
+import { ThemeProvider } from "next-themes";
 import HomePage from "./pages/HomePage";
 import StudentChatPage from "./pages/StudentChatPage";
 import StudyHubPage from "./pages/StudyHubPage";
@@ -16,28 +17,30 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <HelmetProvider>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/chat" element={<StudentChatPage />} />
-            <Route path="/library" element={<StudyHubPage />} />
-            <Route path="/solver" element={<HomeworkSolverPage />} />
-            {/* SEO Pages */}
-            <Route path="/math-help" element={<MathHelpPage />} />
-            <Route path="/homework-helper" element={<HomeworkHelperPage />} />
-            <Route path="/explain-simply" element={<ExplainSimplyPage />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </HelmetProvider>
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/chat" element={<StudentChatPage />} />
+              <Route path="/library" element={<StudyHubPage />} />
+              <Route path="/solver" element={<HomeworkSolverPage />} />
+              {/* SEO Pages */}
+              <Route path="/math-help" element={<MathHelpPage />} />
+              <Route path="/homework-helper" element={<HomeworkHelperPage />} />
+              <Route path="/explain-simply" element={<ExplainSimplyPage />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
+  </ThemeProvider>
 );
 
 export default App;
