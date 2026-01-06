@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { GraduationCap, Menu, X, BookOpen, MessageSquare, Search, Lightbulb } from "lucide-react";
+import { GraduationCap, Menu, X, BookOpen, MessageSquare, Search, Lightbulb, Calculator, Brain, Heart } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -8,6 +8,12 @@ const navLinks = [
   { href: "/chat", label: "AI Assistant", icon: MessageSquare },
   { href: "/library", label: "Study Hub", icon: BookOpen },
   { href: "/solver", label: "Homework Solver", icon: Lightbulb },
+];
+
+const moreLinks = [
+  { href: "/math-help", label: "Math Help", icon: Calculator },
+  { href: "/homework-helper", label: "Homework Helper", icon: BookOpen },
+  { href: "/explain-simply", label: "Explain Simply", icon: Brain },
 ];
 
 export function StudentHeader() {
@@ -49,7 +55,7 @@ export function StudentHeader() {
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden p-2 hover:bg-accent rounded-lg transition-colors"
+          className="md:hidden p-2 hover:bg-secondary rounded-lg transition-colors"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -67,6 +73,28 @@ export function StudentHeader() {
           >
             <nav className="container mx-auto px-4 py-4 flex flex-col gap-2">
               {navLinks.map((link) => {
+                const isActive = location.pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      isActive 
+                        ? "bg-primary/10 text-primary" 
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <link.icon className="w-5 h-5" />
+                    {link.label}
+                  </Link>
+                );
+              })}
+              
+              <div className="border-t border-border my-2" />
+              <p className="px-4 text-xs text-muted-foreground font-medium">More Resources</p>
+              
+              {moreLinks.map((link) => {
                 const isActive = location.pathname === link.href;
                 return (
                   <Link
