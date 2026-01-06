@@ -11,6 +11,7 @@ const footerLinks = {
     { label: "Math Help", href: "/math-help" },
     { label: "Homework Helper", href: "/homework-helper" },
     { label: "Explain Simply", href: "/explain-simply" },
+    { label: "About", href: "/about" },
   ],
 };
 
