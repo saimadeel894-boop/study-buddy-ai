@@ -61,7 +61,7 @@ export default function SignupPage() {
 
         <Card className="shadow-xl border-border/50">
           <CardHeader className="text-center">
-            <CardTitle className="font-display text-2xl">Create your account</CardTitle>
+            <CardTitle className="font-display text-2xl">Get Started</CardTitle>
             <CardDescription>Start your free trial — no credit card required</CardDescription>
           </CardHeader>
           <CardContent>
