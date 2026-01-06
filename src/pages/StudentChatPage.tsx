@@ -107,7 +107,7 @@ export default function StudentChatPage() {
     {
       id: "1",
       role: "assistant",
-      content: "Hi! I'm your AI study assistant. 📚 Select a **subject mode** above for tailored explanations, or just ask anything!\n\nI'll give you:\n- Simple explanations\n- Step-by-step breakdowns\n- Clear examples\n- Key points to remember\n- What to learn next\n\nWhat would you like to learn?",
+      content: "Hi! I am your AI study assistant, here to help you learn.\n\nSelect a subject mode above for tailored explanations, or just ask me anything!\n\nI will give you:\nSimple explanations in plain language\nStep-by-step breakdowns\nClear examples with real values\nKey points to remember\nSuggestions for what to learn next\n\nWhat would you like to learn today?",
       timestamp: new Date(),
     },
   ]);
@@ -311,7 +311,7 @@ export default function StudentChatPage() {
       {
         id: "1",
         role: "assistant",
-        content: "Chat cleared! What would you like to learn about?",
+        content: "Chat cleared! What would you like to learn about today?",
         timestamp: new Date(),
       },
     ]);
