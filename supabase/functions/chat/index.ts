@@ -38,8 +38,10 @@ serve(async (req) => {
       throw new Error('OpenAI API key is not configured');
     }
 
-    const { messages } = await req.json();
+    const { messages, systemPrompt: customSystemPrompt } = await req.json();
     console.log('Received messages:', messages.length);
+
+    const finalSystemPrompt = customSystemPrompt || systemPrompt;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -50,7 +52,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: finalSystemPrompt },
           ...messages,
         ],
         stream: true,
