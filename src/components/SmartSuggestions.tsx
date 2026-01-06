@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { ArrowRight, BookOpen, HelpCircle, Lightbulb } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -40,66 +41,69 @@ const subjectSuggestions: Record<string, { related: string[]; exam: string[]; pr
   },
 };
 
-export function SmartSuggestions({ topic, subject, onSelect }: SmartSuggestionsProps) {
-  const suggestions = subjectSuggestions[subject] || subjectSuggestions.general;
+export const SmartSuggestions = forwardRef<HTMLDivElement, SmartSuggestionsProps>(
+  function SmartSuggestions({ topic, subject, onSelect }, ref) {
+    const suggestions = subjectSuggestions[subject] || subjectSuggestions.general;
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mt-4 p-4 bg-secondary/30 rounded-xl border border-border/50"
-    >
-      <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-        <Lightbulb className="w-4 h-4 text-accent" />
-        Keep Learning
-      </h4>
+    return (
+      <motion.div
+        ref={ref}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mt-4 p-4 bg-secondary/30 rounded-xl border border-border/50"
+      >
+        <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+          <Lightbulb className="w-4 h-4 text-accent" />
+          Keep Learning
+        </h4>
 
-      <div className="space-y-3">
-        <div>
-          <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-            <BookOpen className="w-3 h-3" /> Related Topics
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {suggestions.related.slice(0, 3).map((item, i) => (
-              <button
-                key={i}
-                onClick={() => onSelect(`Explain ${item}`)}
-                className="text-xs px-3 py-1.5 bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-colors"
-              >
-                {item}
-              </button>
-            ))}
+        <div className="space-y-3">
+          <div>
+            <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+              <BookOpen className="w-3 h-3" /> Related Topics
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {suggestions.related.slice(0, 3).map((item, i) => (
+                <button
+                  key={i}
+                  onClick={() => onSelect(`Explain ${item}`)}
+                  className="text-xs px-3 py-1.5 bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-colors"
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+              <HelpCircle className="w-3 h-3" /> Common Exam Questions
+            </p>
+            <div className="space-y-1">
+              {suggestions.exam.slice(0, 2).map((item, i) => (
+                <button
+                  key={i}
+                  onClick={() => onSelect(item)}
+                  className="w-full text-left text-xs px-3 py-2 bg-card rounded-lg hover:bg-secondary transition-colors flex items-center justify-between group"
+                >
+                  <span className="text-foreground">{item}</span>
+                  <ArrowRight className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs text-muted-foreground mb-2">Practice Prompt</p>
+            <button
+              onClick={() => onSelect(suggestions.practice[0])}
+              className="w-full text-left text-xs px-3 py-2 bg-accent/10 text-accent-foreground rounded-lg hover:bg-accent/20 transition-colors border border-accent/20"
+            >
+              {suggestions.practice[0]}
+            </button>
           </div>
         </div>
-
-        <div>
-          <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-            <HelpCircle className="w-3 h-3" /> Common Exam Questions
-          </p>
-          <div className="space-y-1">
-            {suggestions.exam.slice(0, 2).map((item, i) => (
-              <button
-                key={i}
-                onClick={() => onSelect(item)}
-                className="w-full text-left text-xs px-3 py-2 bg-card rounded-lg hover:bg-secondary transition-colors flex items-center justify-between group"
-              >
-                <span className="text-foreground">{item}</span>
-                <ArrowRight className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" />
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <p className="text-xs text-muted-foreground mb-2">💪 Practice Prompt</p>
-          <button
-            onClick={() => onSelect(suggestions.practice[0])}
-            className="w-full text-left text-xs px-3 py-2 bg-accent/10 text-accent-foreground rounded-lg hover:bg-accent/20 transition-colors border border-accent/20"
-          >
-            {suggestions.practice[0]}
-          </button>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
+      </motion.div>
+    );
+  }
+);
