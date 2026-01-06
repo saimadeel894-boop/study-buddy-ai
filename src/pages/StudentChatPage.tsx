@@ -476,7 +476,7 @@ export default function StudentChatPage() {
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 sm:space-y-6">
             <AnimatePresence>
               {messages.map((message, idx) => (
                 <motion.div
@@ -564,8 +564,8 @@ export default function StudentChatPage() {
 
           {/* Suggested Questions */}
           {messages.length === 1 && (
-            <div className="px-4 pb-4">
-              <p className="text-sm text-muted-foreground mb-3 flex items-center gap-2">
+            <div className="px-3 sm:px-4 pb-4">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 flex items-center gap-2">
                 <Lightbulb className="w-4 h-4 text-accent" />
                 Try asking:
               </p>
@@ -574,10 +574,10 @@ export default function StudentChatPage() {
                   <button
                     key={i}
                     onClick={() => setInput(q.text)}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 hover:bg-secondary text-left transition-colors group"
+                    className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-secondary/50 hover:bg-secondary text-left transition-colors group"
                   >
-                    <q.icon className="w-5 h-5 text-primary shrink-0" />
-                    <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors line-clamp-1">
+                    <q.icon className="w-4 sm:w-5 h-4 sm:h-5 text-primary shrink-0" />
+                    <span className="text-xs sm:text-sm text-muted-foreground group-hover:text-foreground transition-colors line-clamp-2 sm:line-clamp-1">
                       {q.text}
                     </span>
                   </button>
@@ -587,17 +587,17 @@ export default function StudentChatPage() {
           )}
 
           {/* Sticky Input Area */}
-          <div className="sticky bottom-0 border-t border-border p-4 bg-card/95 backdrop-blur-sm">
-            <div className="flex gap-3">
-              <div className="relative flex-1">
+          <div className="sticky bottom-0 border-t border-border p-3 sm:p-4 bg-card/95 backdrop-blur-sm safe-area-inset-bottom">
+            <div className="flex gap-2 sm:gap-3">
+              <div className="relative flex-1 min-w-0">
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
                   placeholder="Ask any study question..."
-                  className="pr-12 h-12"
+                  className="pr-10 sm:pr-12 h-11 sm:h-12 text-base"
                 />
-                <Badge variant="secondary" className="absolute right-3 top-1/2 -translate-y-1/2 text-xs">
+                <Badge variant="secondary" className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-xs hidden sm:flex">
                   <Sparkles className="w-3 h-3 mr-1" />
                   AI
                 </Badge>
@@ -605,15 +605,15 @@ export default function StudentChatPage() {
               <Button 
                 variant="hero" 
                 size="icon" 
-                className="h-12 w-12" 
+                className="h-11 sm:h-12 w-11 sm:w-12 flex-shrink-0" 
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
               >
-                <Send className="w-5 h-5" />
+                <Send className="w-4 sm:w-5 h-4 sm:h-5" />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mt-2 text-center">
-              Free to use • No signup required • AI can make mistakes, verify important info
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-2 text-center">
+              Free to use • No signup required • AI can make mistakes
             </p>
           </div>
         </main>
