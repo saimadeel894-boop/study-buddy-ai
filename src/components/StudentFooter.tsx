@@ -82,9 +82,14 @@ export function StudentFooter() {
         </div>
 
         <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} StudyAI. Free for all students.
-          </p>
+          <div className="flex flex-col gap-1">
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} StudyAI. Free for all students.
+            </p>
+            <p className="text-xs text-muted-foreground/80">
+              Created by <span className="font-medium text-foreground/70">Saim Adeel</span> to help students learn better with AI.
+            </p>
+          </div>
           <p className="text-sm text-muted-foreground flex items-center gap-1">
             Made with <Heart className="w-4 h-4 text-destructive fill-destructive" /> for students everywhere
           </p>
