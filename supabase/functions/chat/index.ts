@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -82,8 +82,8 @@ serve(async (req) => {
   }
 
   try {
-    if (!lovableApiKey) {
-      console.error('LOVABLE_API_KEY is not configured');
+    if (!openAIApiKey) {
+      console.error('OPENAI_API_KEY is not configured');
       throw new Error('API key is not configured');
     }
 
@@ -130,14 +130,14 @@ Your goal is to make ANY concept understandable.`;
 Keep it scannable and easy to review.`;
     }
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: finalSystemPrompt },
           ...messages,
