@@ -152,13 +152,16 @@ export default function HomePage() {
                 Free • No Signup Required • Instant Access
               </Badge>
               
-              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-                Your AI Study <span className="text-gradient">Assistant</span>
+              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-3 leading-tight">
+                AI Student <span className="text-gradient">Assistant</span>
               </h1>
               
+              <p className="text-sm md:text-base font-medium text-muted-foreground mb-6">
+                Created by <span className="text-foreground font-semibold">SAIM ADEEL</span>
+              </p>
+              
               <p className="text-lg md:text-xl text-muted-foreground mb-10 leading-relaxed max-w-2xl mx-auto">
-                Ask any question. Get clear, structured explanations with examples. 
-                Learn faster than ever before.
+                Free AI help for students, instantly. Ask any question, get clear explanations.
               </p>
 
               {/* Main Search Bar */}
