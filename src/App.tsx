@@ -12,6 +12,7 @@ import HomeworkSolverPage from "./pages/HomeworkSolverPage";
 import MathHelpPage from "./pages/MathHelpPage";
 import HomeworkHelperPage from "./pages/HomeworkHelperPage";
 import ExplainSimplyPage from "./pages/ExplainSimplyPage";
+import AboutPage from "./pages/AboutPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="/math-help" element={<MathHelpPage />} />
               <Route path="/homework-helper" element={<HomeworkHelperPage />} />
               <Route path="/explain-simply" element={<ExplainSimplyPage />} />
+              <Route path="/about" element={<AboutPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

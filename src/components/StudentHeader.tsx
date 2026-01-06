@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { GraduationCap, Menu, X, BookOpen, MessageSquare, Search, Lightbulb, Calculator, Brain } from "lucide-react";
+import { GraduationCap, Menu, X, BookOpen, MessageSquare, Search, Lightbulb, Calculator, Brain, Info } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ThemeToggle } from "./ThemeToggle";
@@ -9,6 +9,7 @@ const navLinks = [
   { href: "/chat", label: "AI Assistant", icon: MessageSquare },
   { href: "/library", label: "Study Hub", icon: BookOpen },
   { href: "/solver", label: "Homework Solver", icon: Lightbulb },
+  { href: "/about", label: "About", icon: Info },
 ];
 
 const moreLinks = [
